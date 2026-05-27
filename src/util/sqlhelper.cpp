@@ -1,9 +1,9 @@
 #include "sqlhelper.h"
 
+#include <stdint.h>
 #include <iostream>
 #include <map>
 #include <sstream>
-#include <stdint.h>
 #include <string>
 
 namespace hsql {
@@ -151,6 +151,12 @@ void printExpression(Expr* expr, uintmax_t num_indent) {
       break;
     case kExprParameter:
       inprint(expr->ival, num_indent);
+      break;
+    case kExprParameterDollar:
+      inprint(expr->ival, num_indent);
+      break;
+    case kExprParameterNamed:
+      inprint(expr->name, num_indent);
       break;
     case kExprArray:
       for (Expr* e : *expr->exprList) {

@@ -23,6 +23,8 @@ enum ExprType {
   kExprLiteralInterval,
   kExprStar,
   kExprParameter,
+  kExprParameterDollar,
+  kExprParameterNamed,
   kExprColumnRef,
   kExprFunctionRef,
   kExprOperator,
@@ -201,13 +203,18 @@ struct Expr {
 
   static Expr* makeFunctionRef(char* func_name, std::vector<Expr*>* exprList, bool distinct, WindowDescription* window);
 
-  static Expr* makeFunctionRef(char* func_name, char* schema, std::vector<Expr*>* exprList, bool distinct, WindowDescription* window);
+  static Expr* makeFunctionRef(char* func_name, char* schema, std::vector<Expr*>* exprList, bool distinct,
+                               WindowDescription* window);
 
   static Expr* makeArray(std::vector<Expr*>* exprList);
 
   static Expr* makeArrayIndex(Expr* expr, int64_t index);
 
   static Expr* makeParameter(int id);
+
+  static Expr* makeDollarParameter(int64_t n);
+
+  static Expr* makeNamedParameter(char* name);
 
   static Expr* makeSelect(SelectStatement* select);
 

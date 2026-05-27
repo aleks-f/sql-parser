@@ -221,7 +221,8 @@ Expr* Expr::makeFunctionRef(char* func_name, std::vector<Expr*>* exprList, bool 
   return e;
 }
 
-Expr* Expr::makeFunctionRef(char* func_name, char* schema, std::vector<Expr*>* exprList, bool distinct, WindowDescription* window) {
+Expr* Expr::makeFunctionRef(char* func_name, char* schema, std::vector<Expr*>* exprList, bool distinct,
+                            WindowDescription* window) {
   Expr* e = new Expr(kExprFunctionRef);
   e->name = func_name;
   e->schema = schema;
@@ -247,6 +248,18 @@ Expr* Expr::makeArrayIndex(Expr* expr, int64_t index) {
 Expr* Expr::makeParameter(int id) {
   Expr* e = new Expr(kExprParameter);
   e->ival = id;
+  return e;
+}
+
+Expr* Expr::makeDollarParameter(int64_t n) {
+  Expr* e = new Expr(kExprParameterDollar);
+  e->ival = n;
+  return e;
+}
+
+Expr* Expr::makeNamedParameter(char* name) {
+  Expr* e = new Expr(kExprParameterNamed);
+  e->name = name;
   return e;
 }
 
@@ -299,7 +312,8 @@ bool Expr::isType(ExprType exprType) const { return exprType == type; }
 
 bool Expr::isLiteral() const {
   return isType(kExprLiteralInt) || isType(kExprLiteralFloat) || isType(kExprLiteralString) || isType(kExprParameter) ||
-         isType(kExprLiteralNull) || isType(kExprLiteralDate) || isType(kExprLiteralInterval);
+         isType(kExprParameterDollar) || isType(kExprParameterNamed) || isType(kExprLiteralNull) ||
+         isType(kExprLiteralDate) || isType(kExprLiteralInterval);
 }
 
 bool Expr::hasAlias() const { return alias != nullptr; }

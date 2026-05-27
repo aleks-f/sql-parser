@@ -213,6 +213,8 @@
 %token <sval> IDENTIFIER STRING
 %token <fval> FLOATVAL
 %token <ival> INTVAL
+%token <ival> DOLLAR_PARAM
+%token <sval> NAMED_PARAM
 
 /* SQL Keywords */
 %token DEALLOCATE PARAMETERS INTERSECT TEMPORARY TIMESTAMP
@@ -350,9 +352,10 @@ input : statement_list opt_semicolon {
   for (void* param : yyloc.param_list) {
     if (param) {
       Expr* expr = (Expr*)param;
-      expr->ival = param_id;
+      if (expr->type == kExprParameter) {
+        expr->ival = param_id++;
+      }
       result->addParameter(expr);
-      ++param_id;
     }
   }
     delete $1;
@@ -1172,8 +1175,12 @@ comp_expr : operand '=' operand { $$ = Expr::makeOpBinary($1, kOpEquals, $3); }
 // reduce conflicts when splitting them.
 function_expr : IDENTIFIER '(' ')' opt_window { $$ = Expr::makeFunctionRef($1, new std::vector<Expr*>(), false, $4); }
 | IDENTIFIER '(' opt_distinct expr_list ')' opt_window { $$ = Expr::makeFunctionRef($1, $4, $3, $6); }
-| IDENTIFIER '.' IDENTIFIER '(' ')' opt_window { $$ = Expr::makeFunctionRef($3, $1, new std::vector<Expr*>(), false, $6); }
-| IDENTIFIER '.' IDENTIFIER '(' opt_distinct expr_list ')' opt_window { $$ = Expr::makeFunctionRef($3, $1, $6, $5, $8); };
+| IDENTIFIER '.' IDENTIFIER '(' ')' opt_window {
+  $$ = Expr::makeFunctionRef($3, $1, new std::vector<Expr*>(), false, $6);
+}
+| IDENTIFIER '.' IDENTIFIER '(' opt_distinct expr_list ')' opt_window {
+  $$ = Expr::makeFunctionRef($3, $1, $6, $5, $8);
+};
 
 // Window function expressions, based on https://www.postgresql.org/docs/15/sql-expressions.html#SYNTAX-WINDOW-FUNCTIONS
 // We do not support named windows, collations and exclusions (for simplicity) and filters (not part of the SQL standard).
@@ -1305,6 +1312,18 @@ interval_literal : INTVAL duration_field { $$ = Expr::makeIntervalLiteral($1, $2
 param_expr : '?' {
   $$ = Expr::makeParameter(yylloc.total_column);
   $$->ival2 = yyloc.param_list.size();
+  yyloc.param_list.push_back($$);
+}
+| DOLLAR_PARAM {
+  if ($1 < 1) {
+    yyerror(&yyloc, result, scanner, "$0 is not a valid positional parameter.");
+    YYERROR;
+  }
+  $$ = Expr::makeDollarParameter($1);
+  yyloc.param_list.push_back($$);
+}
+| NAMED_PARAM {
+  $$ = Expr::makeNamedParameter($1);
   yyloc.param_list.push_back($$);
 };
 
