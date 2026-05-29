@@ -76,9 +76,9 @@ $(LIB_BUILD): $(LIB_OBJ)
 # to finish (which also produces flex_lexer.h). Without this dep, parallel make races and bison_parser.o
 # can start before hsql_lex is declared, producing 'hsql_lex was not declared' errors.
 $(SRCPARSER)/flex_lexer.o: $(SRCPARSER)/flex_lexer.cpp $(SRCPARSER)/bison_parser.cpp
-	$(CXX) $(LIB_CFLAGS) -c -o $@ $< -Wno-sign-compare -Wno-unneeded-internal-declaration -Wno-register
+	$(CXX) $(LIB_CFLAGS) -c -o $@ $< -Wno-sign-compare -Wno-register
 $(SRCPARSER)/bison_parser.o: $(SRCPARSER)/bison_parser.cpp $(SRCPARSER)/flex_lexer.cpp
-	$(CXX) $(LIB_CFLAGS) -c -o $@ $< -Wno-unused-but-set-variable
+	$(CXX) $(LIB_CFLAGS) -c -o $@ $<
 
 %.o: %.cpp $(PARSER_CPP) $(LIB_H)
 	$(CXX) $(LIB_CFLAGS) -c -o $@ $<

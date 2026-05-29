@@ -36,6 +36,21 @@
 
 // Specify code that is included in the generated .h and .c files
 // clang-format off
+
+// Bison 3.x emits `int yynerrs = 0;` in yyparse() and only ever
+// increments it (`++yynerrs`), never reading the value. GCC's
+// -Wunused-but-set-variable (enabled by -Wall on g++ 10+) considers
+// increment-only as "set but not used" and fires on the declaration.
+// Silence it locally so downstream consumers can build with -Wall
+// without per-file -Wno-* flags. %code top injects at the very top
+// of the generated .cpp (not the .h), so the suppression scope is
+// exactly bison_parser.cpp.
+%code top {
+#if defined(__GNUC__) || defined(__clang__)
+#pragma GCC diagnostic ignored "-Wunused-but-set-variable"
+#endif
+}
+
 %code requires {
 // %code requires block
 
